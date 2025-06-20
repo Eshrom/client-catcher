@@ -1,5 +1,6 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import json
+import os
 
 def _set_cors_headers(handler):
     handler.send_header('Access-Control-Allow-Origin', '*')
@@ -41,4 +42,20 @@ class CatcherHandler(BaseHTTPRequestHandler):
                 print(f"[!] JSON Decode Error: {e}")
                 self.send_response(400)
                 _set_cors_headers(self)
-                self.end_he_
+                self.end_headers()
+                self.wfile.write(b"Invalid JSON")
+        else:
+            self.send_response(404)
+            _set_cors_headers(self)
+            self.end_headers()
+            self.wfile.write(b"Not Found")
+
+def run():
+    port = int(os.environ.get('PORT', 8000))  # Use $PORT or default to 8000
+    server_address = ('0.0.0.0', port)
+    httpd = HTTPServer(server_address, CatcherHandler)
+    print(f"[*] Server running on port {port}...")
+    httpd.serve_forever()
+
+if __name__ == '__main__':
+    run()
