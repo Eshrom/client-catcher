@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: client-catcher
+    env: python
+    plan: free
+    buildCommand: ""
+    startCommand: python catcher.py
+    envVars:
+      - key: PORT
+        value: 10000
+
