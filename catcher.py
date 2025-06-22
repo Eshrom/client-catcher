@@ -18,32 +18,20 @@ class CatcherHandler(BaseHTTPRequestHandler):
             content_length = int(self.headers.get('Content-Length', 0))
             post_data = self.rfile.read(content_length)
 
-            print("[Raw POST data]")
-            try:
-                decoded = post_data.decode('utf-8')
-                print(decoded)
-            except UnicodeDecodeError:
-                print("[!] Could not decode POST data")
-                decoded = None
+            print("[Raw POST data]:", post_data.decode('utf-8', errors='replace'))
 
             try:
-                if decoded:
-                    data = json.loads(decoded)
-                    print("[+] Received client info:")
-                    print(json.dumps(data, indent=2))
-                else:
-                    raise json.JSONDecodeError("No valid data", "", 0)
+                data = json.loads(post_data.decode('utf-8'))
+                print("[+] Parsed client info:")
+                for k, v in data.items():
+                    print(f"  {k}: {v}")
+            except Exception as e:
+                print(f"[!] JSON decode error: {e}")
 
-                self.send_response(200)
-                _set_cors_headers(self)
-                self.end_headers()
-                self.wfile.write(b"Info received.")
-            except json.JSONDecodeError as e:
-                print(f"[!] JSON Decode Error: {e}")
-                self.send_response(400)
-                _set_cors_headers(self)
-                self.end_headers()
-                self.wfile.write(b"Invalid JSON")
+            self.send_response(200)
+            _set_cors_headers(self)
+            self.end_headers()
+            self.wfile.write(b"Info received.")
         else:
             self.send_response(404)
             _set_cors_headers(self)
@@ -51,7 +39,7 @@ class CatcherHandler(BaseHTTPRequestHandler):
             self.wfile.write(b"Not Found")
 
 def run():
-    port = int(os.environ.get('PORT', 8000))  # Use $PORT or default to 8000
+    port = int(os.environ.get('PORT', 8000))
     server_address = ('0.0.0.0', port)
     httpd = HTTPServer(server_address, CatcherHandler)
     print(f"[*] Server running on port {port}...")
